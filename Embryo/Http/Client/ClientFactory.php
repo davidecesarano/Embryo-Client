@@ -1,17 +1,18 @@
 <?php 
 
+    /**
+     * ClientFactory
+     *
+     * @author Davide Cesarano <davide.cesarano@unipegaso.it>
+     * @link   https://github.com/davidecesarano/embryo-client
+     */
     namespace Embryo\Http\Client;
 
     use Embryo\Http\Message\Request;
-    use Psr\Http\Message\ResponseInterface;
+    use Psr\Http\Message\{RequestInterface, ResponseInterface};
 
     class ClientFactory 
     {
-        /**
-         * @var array $allowedMethods
-         */
-        private $allowedMethods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
-
         /**
          * @var array $headers 
          */
@@ -27,24 +28,49 @@
          */
         private $sslCertificate = false;
 
+        /**
+         * Set request headers.
+         * 
+         * @param array $headers 
+         * @return self
+         */
         public function withHeaders(array $headers): self 
         {
             $this->headers = $headers;
             return $this;
         }
 
+        /**
+         * Set request authorization header 
+         * with Bearer token.
+         * 
+         * @param string $token 
+         * @return self
+         */
         public function withToken(string $token): self
         {
             $this->headers['Authorization'] = 'Bearer '.$token;
             return $this;
         }
 
+        /**
+         * Set timeout.
+         * 
+         * @param int $timeout 
+         * @return self
+         */
         public function withTimeout(int $timeout): self
         {
             $this->timeout = $timeout;
             return $this;
         }
 
+        /**
+         * Set check SSL certificate.
+         * 
+         * @param bool $sslCertificate 
+         * @return self
+         */
         public function withSslCertificate(bool $sslCertificate): self 
         {
             $this->sslCertificate = $sslCertificate;
@@ -52,26 +78,95 @@
         }
 
         /**
-         * @param string $method
-         * @param array $arguments 
+         * GET 
+         * 
+         * @param string $uri 
          * @return ResponseInterface
          */
-        public function __call(string $method, $arguments): ResponseInterface
-        {   
-            $method = strtoupper($method);
-            if (!in_array($method, $this->allowedMethods)) {
-                throw new \InvalidArgumentException("Invalid HTTP method: '{$method}'");
-            }
+        public function get(string $uri): ResponseInterface
+        {
+            $request = new Request('GET', $uri);
+            return $this->sendRequest($request);
+        }
 
-            $uri = $arguments[0];
-            $data = isset($arguments[1]) ? $arguments[1] : [];
-            $body = json_encode($data) ? json_encode($data) : '';
+        /**
+         * POST 
+         * 
+         * @param string $uri 
+         * @param array $data
+         * @return ResponseInterface
+         */
+        public function post(string $uri, array $data = []): ResponseInterface
+        {
+            $body = $this->encode($data);
+            $request = new Request('GET', $uri, [], $body);
+            return $this->sendRequest($request);
+        }
 
-            $request = new Request($method, $uri, [], $body);
+        /**
+         * PUT 
+         * 
+         * @param string $uri 
+         * @param array $data
+         * @return ResponseInterface
+         */
+        public function put(string $uri, array $data = []): ResponseInterface
+        {
+            $body = $this->encode($data);
+            $request = new Request('PUT', $uri, [], $body);
+            return $this->sendRequest($request);
+        }
+
+        /**
+         * PATCH 
+         * 
+         * @param string $uri 
+         * @param array $data
+         * @return ResponseInterface
+         */
+        public function patch(string $uri, array $data = []): ResponseInterface
+        {
+            $body = $this->encode($data);
+            $request = new Request('PATCH', $uri, [], $body);
+            return $this->sendRequest($request);
+        }
+
+        /**
+         * DELETE 
+         * 
+         * @param string $uri 
+         * @param array $data
+         * @return ResponseInterface
+         */
+        public function delete(string $uri, array $data = []): ResponseInterface
+        {
+            $body = $this->encode($data);
+            $request = new Request('DELETE', $uri, [], $body);
+            return $this->sendRequest($request);
+        }
+
+        /**
+         * Encode array. 
+         *  
+         * @param array $data
+         * @return string
+         */
+        private function encode(array $data) : string
+        {
+            return json_encode($data) !== false ? json_encode($data) : '';
+        }
+
+        /**
+         * Send request.
+         * 
+         * @param RequestInterface $request
+         * @return ResponseInterface
+         */
+        private function sendRequest(RequestInterface $request): ResponseInterface 
+        {
             foreach ($this->headers as $name => $value) {
                 $request = $request->withHeader($name, $value);
             }
-
             $client = new Client($this->timeout, $this->sslCertificate);
             return $client->sendRequest($request);
         }

@@ -92,7 +92,7 @@
 
             curl_setopt_array($curl, $options);
             $body = curl_exec($curl);
-            if ($body === false) {
+            if (is_bool($body)) {
                 throw new NetworkException(curl_error($curl), $request);
             }
             curl_close($curl);
