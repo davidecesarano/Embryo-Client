@@ -114,13 +114,18 @@
          * request.
          * 
          * @param RequestInterface $request 
-         * @return array
+         * @return array|string
          */
-        private function getParsedBody(RequestInterface $request): array
+        private function getParsedBody(RequestInterface $request)
         {
             $body = (string) $request->getBody();
             if (empty($body)) {
                 return [];
+            }
+
+            $contentType = $request->getHeaderLine('Content-Type');
+            if ($contentType !== '' && strpos($contentType, 'application/json') !== false) {
+                return $body;
             }
 
             $encode = json_decode($body, true);

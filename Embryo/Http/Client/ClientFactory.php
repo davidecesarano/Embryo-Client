@@ -59,6 +59,18 @@
         }
 
         /**
+         * Set content type request as
+         * JSON.
+         * 
+         * @return self
+         */
+        public function withJson(): self
+        {
+            $this->headers['Content-Type'] = 'application/json';
+            return $this;
+        }
+
+        /**
          * Set timeout.
          * 
          * @param int $timeout 
