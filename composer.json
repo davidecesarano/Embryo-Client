@@ -19,8 +19,7 @@
         "php": ">=7.1",
         "psr/http-message": "1.0.1",
         "psr/http-client": "1.0.0",
-        "davidecesarano/embryo-http": "dev-master",
-        "davidecesarano/embryo-emitter": "dev-master"
+        "davidecesarano/embryo-http": "dev-master"
     },
     "autoload": {
         "psr-4": {
