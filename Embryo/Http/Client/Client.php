@@ -70,14 +70,14 @@
                 case 'GET':
                     break;
                 case 'POST':
-                    $options[CURLOPT_POST] = 1;
-                    $options[CURLOPT_POSTFIELDS] = (string) $request->getBody();
+                    $options[CURLOPT_POST] = true;
+                    $options[CURLOPT_POSTFIELDS] = $this->getParsedBody($request);
                     break;
                 case 'PATCH':
                 case 'PUT':
                 case 'DELETE':
                     $options[CURLOPT_CUSTOMREQUEST] = $request->getMethod();
-                    $options[CURLOPT_POSTFIELDS] = (string) $request->getBody();
+                    $options[CURLOPT_POSTFIELDS] = $this->getParsedBody($request);
                     break;
                 default:
                     throw new RequestException("Unknown HTTP method: '{$request->getMethod()}'", $request);
@@ -89,7 +89,7 @@
                 $headerLines[] = $headerLine;
                 return $len;
             };
-
+            
             curl_setopt_array($curl, $options);
             $body = curl_exec($curl);
             if (is_bool($body)) {
@@ -107,6 +107,32 @@
             $response = new Response($statusCode, $reasonPhrase, $responseHeaders, $body);
             $response = $response->withProtocolVersion($protocolVersion);
             return $response;
+        }
+
+        /**
+         * Get parsed body from
+         * request.
+         * 
+         * @param RequestInterface $request 
+         * @return array
+         */
+        private function getParsedBody(RequestInterface $request): array
+        {
+            $body = (string) $request->getBody();
+            if (empty($body)) {
+                return [];
+            }
+
+            $encode = json_decode($body, true);
+            $parsed = [];
+            foreach ($encode as $key => $value) {
+                if (substr($value, 0, 1) === '@') {
+                    $parsed[$key] = new \CURLFile(str_replace('@', '', $value));
+                } else {
+                    $parsed[$key] = $value;
+                }
+            }
+            return $parsed;
         }
 
         /**
