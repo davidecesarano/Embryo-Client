@@ -29,6 +29,11 @@
         private $sslCertificate = false;
 
         /**
+         * @var array $files
+         */
+        private $files = [];
+
+        /**
          * Set request headers.
          * 
          * @param array $headers 
@@ -78,6 +83,24 @@
         }
 
         /**
+         * Attach file to request.
+         * 
+         * @param string $field 
+         * @param string $filepath 
+         * @return self 
+         * @throws \RuntimeException
+         */
+        public function withFile(string $field, string $filepath): self 
+        {
+            if (!file_exists($filepath)) {
+                throw new \RuntimeException("File $filepath not exists");
+            }
+
+            $this->files[$field] = '@'.$filepath;
+            return $this; 
+        }
+
+        /**
          * GET 
          * 
          * @param string $uri 
@@ -99,7 +122,7 @@
         public function post(string $uri, array $data = []): ResponseInterface
         {
             $body = $this->encode($data);
-            $request = new Request('GET', $uri, [], $body);
+            $request = new Request('POST', $uri, [], $body);
             return $this->sendRequest($request);
         }
 
@@ -151,8 +174,9 @@
          * @param array $data
          * @return string
          */
-        private function encode(array $data) : string
+        private function encode(array $data): string
         {
+            $data = array_merge($data, $this->files);
             return json_encode($data) !== false ? json_encode($data) : '';
         }
 
