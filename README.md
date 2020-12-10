@@ -58,8 +58,32 @@ $response = $http
 ```
 
 ### Sending a raw request body
+You may use the `withJson` method if you want to provide a raw request body when making a request:
+
+```php
+$response = $http
+    ->withJson()
+    ->post('https://example.com/users', [
+        'name' => 'Davide',
+        'surname' => 'Cesarano'
+    ]);
+```
 
 ### Attach file
+If you want to send files, you may use the `withFile` method. This method accepts the name of the field and file absolute path:
+
+```php
+$response = $http
+    ->withFile('file1', '/path/to/file1')
+    ->withFile('file2', '/path/to/file2')
+    ->post('https://example.com/upload');
+```
 
 ### Timeout
+With `timeout` method you may to specify the maximum number of seconds to wait for a response:
 
+```php
+$response = $http
+    ->withTimeout(30)
+    ->get('https://example.com/users');
+```
