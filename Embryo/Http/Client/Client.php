@@ -133,10 +133,16 @@
             $encode = json_decode($body, true);
             $parsed = [];
             foreach ($encode as $key => $value) {
-                if (substr($value, 0, 1) === '@') {
-                    $parsed[$key] = new \CURLFile(str_replace('@', '', $value));
+                if (!is_array($value)) {
+                    if (substr($value, 0, 1) === '@') {
+                        $parsed[$key] = new \CURLFile(str_replace('@', '', $value));
+                    } else {
+                        $parsed[$key] = $value;
+                    }
                 } else {
-                    $parsed[$key] = $value;
+                    foreach ($value as $k => $v) {
+                        $parsed[$key.'['.$k.']'] = $v;
+                    }
                 }
             }
             return $parsed;
